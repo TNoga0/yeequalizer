@@ -1,0 +1,2 @@
+FLASK_APP=yeelight_api.py
+FLASK_ENV=development

@@ -1,25 +1,30 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, {createContext, useEffect, useState} from 'react';
 import './App.css';
+import ColorPicker from "./components/ColorPicker";
+import YeelightHandler from "./components/YeelightHandler";
+
+// Context for passing bulb data between siblings
+export const bulbContext = createContext({});
 
 function App() {
+
+  // State passed from ColorPicker to YeelightHandler
+  const [bulbColor, setBulbColor] = useState("#ffffff");
+
+  const { Provider } = bulbContext;
+
+  useEffect(() => {
+    document.body.style.backgroundColor = bulbColor;
+  }, [bulbColor]);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Provider value={{ bulbColor }}>
+      <div className="App">
+        <ColorPicker changeBgColor={setBulbColor}/>
+        <br/>
+        <YeelightHandler/>
+      </div>
+    </Provider>
   );
 }
 
