@@ -32,7 +32,7 @@ function YeelightHandler() {
 
   // Make a POST request to Flask to light up the bulb
   function lightup() {
-    fetch('/light_up', {
+    fetch('/light_on', {
       method: "POST",
       cache: "no-cache",
       headers: {
