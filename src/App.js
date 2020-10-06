@@ -2,6 +2,7 @@ import React, {createContext, useEffect, useState} from 'react';
 import './App.css';
 import ColorPicker from "./components/ColorPicker";
 import YeelightHandler from "./components/YeelightHandler";
+import AudioAnalyzer from "./components/AudioAnalyzer";
 
 // Context for passing bulb data between siblings
 export const bulbContext = createContext({});
@@ -23,6 +24,8 @@ function App() {
         <ColorPicker changeBgColor={setBulbColor}/>
         <br/>
         <YeelightHandler/>
+        <br/>
+        <AudioAnalyzer/>
       </div>
     </Provider>
   );
