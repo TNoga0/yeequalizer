@@ -4,6 +4,8 @@ import ReactHowler from 'react-howler';
 import {Howl, Howler} from 'howler';
 import "../App.css";
 
+import EQDrawer from "./EQDrawer";
+
 function AudioHowler(props) {
 
   const [player, setPlayer] = useState(null);
@@ -12,29 +14,20 @@ function AudioHowler(props) {
   const [dataArray, setDataArray] = useState([]);
   const [bgColor, setBgColor] = useState([255, 255, 255]);
 
+  const [eqData, setEQData] = useState([]);
+
+  const fftSize = 512;
+  const sampleRate = 44100;
+
   // This variable is needed because playMusic's update seems to be ignored
   // by drawFrequencyData
   var stopMusic = false;
 
-  var fftSize = 512;
-  var canvasSize = 512;
+  var eqArrayIndexes;
 
-  // p5.js methods
-  const setup = (p5, canvasParentRef) => {
-    p5.createCanvas(canvasSize, canvasSize).parent(canvasParentRef);
-  };
-
-  var i;
-  const draw = (p5) => {
-    if (playMusic) {
-      p5.background(p5.color(bgColor[0], bgColor[1], bgColor[2]));
-      p5.fill(p5.color(0));
-      for (i = 0; i < dataArray.length; i++) {
-        p5.rect(((canvasSize/fftSize) * 2 * i), 512, canvasSize/fftSize * 2, -1.5 * dataArray[i]);
-      }
-    }
-  };
-  // end p5.js methods
+  useEffect(() => {
+    eqArrayIndexes = gatherFrequencyRanges(fftSize);
+  });
 
   // after selected background color changes, update the bgColor state
   useEffect(() => {
@@ -45,7 +38,6 @@ function AudioHowler(props) {
   }, [props.bgColor]);
 
   useEffect(() => {
-    console.log(playMusic);
     if (playMusic) {
       window.requestAnimationFrame(drawFrequencyData);
     }
@@ -54,8 +46,6 @@ function AudioHowler(props) {
   useEffect(() => {
     if (player !== null && analyser === null) {
       setAnalyser(Howler.ctx.createAnalyser());
-      console.log(player);
-      console.log(Howler.ctx);
     }
     if (analyser !== null) {
       analyser.fftSize = fftSize;
@@ -72,10 +62,27 @@ function AudioHowler(props) {
   // where f is frequency band, N is the dataArray element
   function drawFrequencyData() {
     analyser.getByteFrequencyData(dataArray);
+    setEQData(dataArray.slice(0, 3));
     if (playMusic && !stopMusic) {
       window.requestAnimationFrame(drawFrequencyData);
     }
   }
+
+  // Method to gather various frequency ranges
+  function gatherFrequencyRanges(fftSize) {
+    // sub-bass and bass frequencies (20Hz - 250Hz)
+    let bassUpperElement = Math.round((250 * fftSize)/sampleRate);
+    let lowerMidUpperElement = Math.round((1500 * fftSize)/sampleRate);
+    let upperMidUpperElement = Math.round((6600 * fftSize)/sampleRate);
+    let superHighUpperElement = Math.round((20000 * fftSize)/sampleRate);
+    return [
+      bassUpperElement,
+      lowerMidUpperElement,
+      upperMidUpperElement,
+      superHighUpperElement
+    ]
+  }
+
 
   return(
     <div className="AudioHowler">
@@ -83,7 +90,7 @@ function AudioHowler(props) {
       <ReactHowler
         src="static/tokyodrift.mp3"
         playing={playMusic}
-        volume={0.4}
+        volume={0.3}
         ref={(ref) => (setPlayer(ref))}
       />
       <button className="PlayButton" onClick={() => {
@@ -93,7 +100,12 @@ function AudioHowler(props) {
       }>PLAY THE EUROBEAT</button>
       <br/><br/>
 
-      <Sketch setup={setup} draw={draw}/>
+      <EQDrawer
+        audioData={eqData}
+        drawFlag={playMusic}
+        canvasColor={bgColor}
+        fftSize={fftSize}
+      />
     </div>
   );
 }

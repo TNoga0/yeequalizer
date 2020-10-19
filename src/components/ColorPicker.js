@@ -13,7 +13,7 @@ function ColorPicker(props) {
 
   return (
     <div className="ColorPicker">
-      <h1>Elo.</h1>
+      <h1>Pick a BG Color.</h1>
       <ChromePicker
         color={bgColor}
         onChangeComplete={handleColorChangeCompleted}
