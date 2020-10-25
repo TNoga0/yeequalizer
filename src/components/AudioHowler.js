@@ -1,10 +1,10 @@
-import React, {useEffect, useState, useRef} from "react";
+import React, {useEffect, useState, useContext} from "react";
 import Sketch from "react-p5";
 import ReactHowler from 'react-howler';
 import {Howl, Howler} from 'howler';
 import "../App.css";
-
 import EQDrawer from "./EQDrawer";
+import {bulbContext} from "../App";
 
 function AudioHowler(props) {
 
@@ -23,11 +23,8 @@ function AudioHowler(props) {
   // by drawFrequencyData
   var stopMusic = false;
 
-  var eqArrayIndexes;
-
-  useEffect(() => {
-    eqArrayIndexes = gatherFrequencyRanges(fftSize);
-  });
+  // Get the index ranges for EQ frequencies
+  const eqArrayIndexes = gatherFrequencyRanges(fftSize);
 
   // after selected background color changes, update the bgColor state
   useEffect(() => {
@@ -55,6 +52,8 @@ function AudioHowler(props) {
     }
   }, [player, analyser]);
 
+  const { setBulbBrightness } = useContext(bulbContext);
+
   // Gather FFT audio data and redraw animation until music is playing
   // Bass is from 60 to 250 Hz and that's the range I need for yeelight
   // flickering
@@ -62,24 +61,31 @@ function AudioHowler(props) {
   // where f is frequency band, N is the dataArray element
   function drawFrequencyData() {
     analyser.getByteFrequencyData(dataArray);
-    setEQData(dataArray.slice(0, 3));
+    setEQData(dataArray);
+    setBulbBrightness(dataArray[eqArrayIndexes[1]] / 2.56);
     if (playMusic && !stopMusic) {
       window.requestAnimationFrame(drawFrequencyData);
     }
   }
 
-  // Method to gather various frequency ranges
+  // Method to gather fixed frequency bands
   function gatherFrequencyRanges(fftSize) {
-    // sub-bass and bass frequencies (20Hz - 250Hz)
-    let bassUpperElement = Math.round((250 * fftSize)/sampleRate);
-    let lowerMidUpperElement = Math.round((1500 * fftSize)/sampleRate);
-    let upperMidUpperElement = Math.round((6600 * fftSize)/sampleRate);
-    let superHighUpperElement = Math.round((20000 * fftSize)/sampleRate);
+    // sub-bass - 30Hz
+    let lowBassIndex = Math.round((30 * fftSize)/sampleRate);
+    // low bass - 100Hz
+    let bassIndex = Math.round((100 * fftSize)/sampleRate);
+    // mid - 1kHz
+    let midIndex = Math.round((1000 * fftSize)/sampleRate);
+    // lower-upper mid - 5kHz
+    let upperMidIndex = Math.round((5000 * fftSize)/sampleRate);
+    // upper mid - 10kHz
+    let trebleIndex = Math.round((10000 * fftSize)/sampleRate);
     return [
-      bassUpperElement,
-      lowerMidUpperElement,
-      upperMidUpperElement,
-      superHighUpperElement
+      lowBassIndex,
+      bassIndex,
+      midIndex,
+      upperMidIndex,
+      trebleIndex
     ]
   }
 
@@ -88,7 +94,7 @@ function AudioHowler(props) {
     <div className="AudioHowler">
       <h2>HOLA COMPANEROS</h2>
       <ReactHowler
-        src="static/tokyodrift.mp3"
+        src="static/indaclub.mp3"
         playing={playMusic}
         volume={0.3}
         ref={(ref) => (setPlayer(ref))}
@@ -102,6 +108,7 @@ function AudioHowler(props) {
 
       <EQDrawer
         audioData={eqData}
+        bandIndexes={eqArrayIndexes}
         drawFlag={playMusic}
         canvasColor={bgColor}
         fftSize={fftSize}

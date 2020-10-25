@@ -10,13 +10,28 @@ bulb = Bulb("")
 
 @app.route("/get_bulbs")
 def get_yeelight_bulbs():
-    return {"bulbs": discover_bulbs()}
+    bulb_data = discover_bulbs()
+    bulb._ip = bulb_data[0]["ip"]
+    if not bulb.music_mode:
+        bulb.start_music(bulb_data[0]["port"])
+    return {"bulbs": bulb_data}
 
 
 @app.route("/light_on", methods=["GET", "POST"])
-def let_there_be_light():
+def lumos():
     if request.method == "POST":
-        lightup_bulb(bulb, request.json["ip"], request.json["color"])
-        time.sleep(2)
-        bulb.turn_off()
+        print(request.json)
+        lightup_bulb(
+            bulb,
+            request.json["ip"],
+            request.json["color"],
+            request.json["brightness"]
+        )
         return "Response received"
+
+
+@app.route("/light_off", methods=["GET", "POST"])
+def nox():
+    if request.method == "POST":
+        bulb.turn_off()
+    return "Response received"

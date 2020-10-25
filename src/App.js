@@ -11,6 +11,7 @@ function App() {
 
   // State passed from ColorPicker to YeelightHandler
   const [bulbColor, setBulbColor] = useState("#ffffff");
+  const [bulbBrightness, setBulbBrightness] = useState(0);
 
   const { Provider } = bulbContext;
 
@@ -19,11 +20,11 @@ function App() {
   }, [bulbColor]);
 
   return (
-    <Provider value={{ bulbColor }}>
+    <Provider value={{ bulbColor, bulbBrightness, setBulbBrightness }}>
       <div className="App">
         <ColorPicker changeBgColor={setBulbColor}/>
         <br/>
-        <YeelightHandler/>
+        <YeelightHandler />
         <br/>
         <AudioHowler bgColor={bulbColor}/>
       </div>

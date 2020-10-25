@@ -4,7 +4,13 @@ import {bulbContext} from "../App";
 
 function YeelightHandler() {
 
-  const [bulbProperties, setBulbProperties] = useState({});
+  var lightOn = false;
+  const [bulbProperties, setBulbProperties] = useState({
+    ip: "",
+    port: 0,
+    color: [255, 255, 255],
+    brightness: -0.1
+  });
 
   const { bulbColor } = useContext(bulbContext);
 
@@ -15,10 +21,12 @@ function YeelightHandler() {
       setBulbProperties({
         ip: data.bulbs[0].ip,
         port: data.bulbs[0].port,
+        color: [255, 255, 255],
+        brightness: -0.1
       })
     });
+    turnoff();
   }, []);
-
 
   // Update bulb color (data from ColorPicker)
   useEffect(() => {
@@ -26,9 +34,44 @@ function YeelightHandler() {
     let g = parseInt(bulbColor.slice(3, 5), 16);
     let b = parseInt(bulbColor.slice(5, 7), 16);
 
-    bulbProperties["color"] = [r, g, b];
+    bulbProperties.color = [r, g, b];
     setBulbProperties(bulbProperties);
   }, [bulbColor]);
+
+  const { bulbBrightness } = useContext(bulbContext);
+
+  var [counter, setCounter] = useState(0);
+  useEffect(() => {
+    if (counter === 5) {
+      if (bulbBrightness >= 80) {
+        console.log("boom");
+      }
+      if (Math.abs(bulbBrightness - bulbProperties.brightness) >= 10) {
+        if (bulbBrightness >= 80) {
+          bulbProperties.brightness = 100;
+        } else {
+          bulbProperties.brightness = 20;
+        }
+        // console.log(bulbBrightness);
+        lightup();
+        setBulbProperties(bulbProperties);
+      }
+      setCounter(0);
+    }
+    else {
+      setCounter(counter + 1);
+    }
+  }, [bulbBrightness]);
+
+  function toggleLight() {
+    if (lightOn) {
+      turnoff();
+    }
+    else {
+      lightup();
+    }
+    lightOn = !lightOn;
+  }
 
   // Make a POST request to Flask to light up the bulb
   function lightup() {
@@ -43,9 +86,20 @@ function YeelightHandler() {
     })
   }
 
+  function turnoff() {
+    fetch('/light_off', {
+      method: "POST",
+      cache: "no-cache",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: 'include',
+    })
+  }
+
   return(
     <div className="YeelightHandler">
-      <button onClick={lightup}>LET THERE BE LIGHT</button>
+      <button onClick={toggleLight}>LET THERE BE LIGHT</button>
     </div>
   );
 }

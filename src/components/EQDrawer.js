@@ -13,11 +13,12 @@ function EQDrawer(props) {
 
   var i;
   const draw = (p5) => {
+    let rectWidth = canvasSize/props.bandIndexes.length;
     if (props.drawFlag) {
       p5.background(p5.color(props.canvasColor[0], props.canvasColor[1], props.canvasColor[2]));
       p5.fill(p5.color(0));
-      for (i = 0; i < props.audioData.length; i++) {
-        p5.rect(((canvasSize/props.fftSize) * 2 * i), 512, canvasSize/props.fftSize * 2, -1.5 * props.audioData[i]);
+      for (i = 0; i < props.bandIndexes.length; i++) {
+        p5.rect((rectWidth * i), 512, rectWidth, -1.5 * props.audioData[props.bandIndexes[i]]);
       }
     }
   };
